@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package models;
+option go_package = "./;pb";
+
+import "google/protobuf/timestamp.proto";
+
+
+message Order{
+  uint64 ID = 1;
+  int64 customer_ID =2;
+  int64 pickpoint_ID = 3;
+  google.protobuf.Timestamp shelf_time = 4;
+  google.protobuf.Timestamp time_created = 5;
+  google.protobuf.Timestamp date_receipt = 6;
+  int64 penny = 7;
+  int64 weight = 9;
+  string state = 10;
+}
+
+message OrderInitData{
+  int64 customer_ID =1;
+  int64 pickpoint_ID = 2;
+  google.protobuf.Timestamp shelf_time = 3;
+  int64 penny = 4; // в копейках
+  int64 weight = 5; // в килограммах с точностью до сотых
+  string type_packing = 6; //Box, Tape, Package
+}

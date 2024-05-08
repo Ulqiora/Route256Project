@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package services;
+option go_package = "./;pb";
+
+import "google/api/annotations.proto";
+import "order.proto";
+
+service OrderDelivery {
+  rpc GetReturnedOrders (GetReturnedOrdersRequest) returns (GetReturnedOrdersResponse) {
+    option (google.api.http) = {
+      get: "/order_api/order"
+    };
+  }
+  rpc SearchOrders(SearchOrdersRequest) returns (SearchOrdersResponse){
+    option (google.api.http) = {
+      get: "/order_api/customer/{customer_id}"
+    };
+  }
+}
+
+message GetReturnedOrdersRequest{
+  uint32 page = 2;
+  uint32 limit = 3;
+}
+
+message GetReturnedOrdersResponse{
+  repeated models.Order orders = 1;
+}
+
+message SearchOrdersRequest{
+  int64 customer_id = 1;
+  int32 last_n = 2;
+  int64 pickpoint_id = 3;
+}
+
+message SearchOrdersResponse{
+  repeated models.Order orders = 1;
+}

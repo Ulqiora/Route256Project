@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package services;
+option go_package = "./;pb";
+
+import "google/api/annotations.proto";
+
+
+service OrderClient {
+  rpc IssuingAnOrderCustomer (IssuingAnOrderCustomerRequest) returns (IssuingAnOrderCustomerResponse) {
+    option (google.api.http) = {
+      patch: "/order_api/order"
+      body: "order_ids"
+    };
+  }
+  rpc ReturnOrder(ReturnOrderRequest) returns (ReturnOrderResponse){
+    option (google.api.http) = {
+      patch: "/order_api/order/{order_id}/customer/{customer_id}"
+    };
+  }
+}
+
+message IssuingAnOrderCustomerRequest{
+  repeated uint64 order_ids = 1;
+}
+
+message IssuingAnOrderCustomerResponse{
+}
+
+message ReturnOrderRequest{
+  uint64 order_id = 1;
+  uint64 customer_id = 2;
+}
+
+message ReturnOrderResponse{
+}

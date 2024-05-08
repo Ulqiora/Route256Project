@@ -1,0 +1,29 @@
+env: "prod"
+storage_dsn: "postgres://postgres:postgres@development-db-postgres:5432/postgres?sslmode=disable"
+http:
+  address: ":9000"
+  timeout: 10s
+https:
+  private_key: "server.key"
+  certificate: "server.crt"
+  auth:
+    user: "test"
+    password: "test"
+  address: ":9001"
+  timeout: 10s
+grpc:
+  address: ":9002"
+kafka:
+  Hosts:
+    - "kafka1:9091"
+    - "kafka2:9092"
+    - "kafka3:9093"
+redis:
+  address: "redis_cache:6379"
+  password: "test"
+  DB: 1
+monitoring:
+  prometheus-exporter:
+    address: ":10091"
+  jaeger:
+    address: "jaeger:16686"

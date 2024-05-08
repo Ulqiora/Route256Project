@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package services;
+option go_package = "./;pb";
+
+import "google/api/annotations.proto";
+import "order.proto";
+
+service OrderCourier {
+  rpc AcceptOrder (AcceptOrderRequest) returns (AcceptOrderResponse) {
+    option (google.api.http) = {
+      post: "/order_api/order"
+      body: "order"
+    };
+  }
+  rpc ReturnOrderToCourier(ReturnOrderToCourierRequest) returns (ReturnOrderToCourierResponse){
+    option (google.api.http) = {
+      delete: "/order_api/order/{order_id}"
+    };
+  }
+}
+
+message AcceptOrderRequest{
+  models.OrderInitData order = 1;
+}
+
+message AcceptOrderResponse{
+  int64 order_id = 1;
+}
+
+message ReturnOrderToCourierRequest{
+  int64 order_id = 1;
+}
+
+message ReturnOrderToCourierResponse{
+}

@@ -1,0 +1,11 @@
+version: '3'
+services:
+  development-application:
+    build:
+      context: ../
+      dockerfile: ../build/grpc_service/Dockerfile
+    ports:
+      - "9000:9000" #http
+      - "9001:9001" #https
+      - "9002:9002" #grpc
+      - "10091:10091" # Prometheus exporter

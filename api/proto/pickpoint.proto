@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package models;
+option go_package = "./;pb";
+
+
+message ContactDetails{
+  string type = 1;
+  string detail = 2;
+}
+
+message PickPoint{
+  int32 ID = 1;
+  string name = 2;
+  string address = 3;
+  repeated ContactDetails contact_details = 4;
+}

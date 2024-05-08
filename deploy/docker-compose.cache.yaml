@@ -1,0 +1,16 @@
+version: '3'
+services:
+  redis_cache:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache:/root/redis
+    environment:
+      - REDIS_PASSWORD=test
+      - REDIS_USER=test
+      - REDIS_PORT=6379
+      - REDIS_DATABASES=1
+volumes:
+  cache:

@@ -1,0 +1,15 @@
+version: '3'
+services:
+  development-db-postgres:
+    restart: always
+    image: postgres:14.1-alpine
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - db:/var/lib/cli/data
+    ports:
+      - "5435:5432"
+volumes:
+  db:
