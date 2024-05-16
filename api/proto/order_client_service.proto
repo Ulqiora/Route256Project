@@ -1,10 +1,10 @@
 syntax = "proto3";
 
 package services;
-option go_package = "./;pb";
+option go_package = "./;api";
 
 import "google/api/annotations.proto";
-
+import "uuid.proto";
 
 service OrderClient {
   rpc IssuingAnOrderCustomer (IssuingAnOrderCustomerRequest) returns (IssuingAnOrderCustomerResponse) {
@@ -15,21 +15,21 @@ service OrderClient {
   }
   rpc ReturnOrder(ReturnOrderRequest) returns (ReturnOrderResponse){
     option (google.api.http) = {
-      patch: "/order_api/order/{order_id}/customer/{customer_id}"
+      patch: "/order_api/order/{order_id.value}/customer/{customer_id.value}"
     };
   }
 }
 
 message IssuingAnOrderCustomerRequest{
-  repeated uint64 order_ids = 1;
+  repeated models.UUID order_ids = 1;
 }
 
 message IssuingAnOrderCustomerResponse{
 }
 
 message ReturnOrderRequest{
-  uint64 order_id = 1;
-  uint64 customer_id = 2;
+  models.UUID order_id = 1;
+  models.UUID customer_id = 2;
 }
 
 message ReturnOrderResponse{

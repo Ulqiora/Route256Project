@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"io"
 
-	"homework/internal/repository"
-	jtime "homework/pkg/wrapper/jsontime"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	jtime "github.com/Ulqiora/Route256Project/pkg/wrapper/jsontime"
+	"github.com/jackc/pgtype"
 )
 
 type TypePacking string
@@ -17,8 +18,8 @@ const (
 )
 
 type OrderInitData struct {
-	CustomerID  int64          `json:"customer_id"` // ID Заказчика
-	PickPointID int64          `json:"pick_point_id"`
+	CustomerID  string         `json:"customer_id"` // ID Заказчика
+	PickPointID string         `json:"pick_point_id"`
 	ShelfLife   jtime.TimeWrap `json:"shelf_life"` // Срок хранения заказа на ПВЗ
 
 	Penny  int64 `json:"price"`
@@ -29,11 +30,16 @@ type OrderInitData struct {
 
 func (o *OrderInitData) MapToDTO() repository.OrderDTO {
 	dto := repository.OrderDTO{
-		CustomerID:  o.CustomerID,
-		PickPointID: o.PickPointID,
-		Penny:       o.Penny,
-		Weight:      o.Weight,
+		CustomerID:  pgtype.UUID{},
+		PickPointID: pgtype.UUID{},
+		Penny:       pgtype.Numeric{},
+		Weight:      pgtype.Numeric{},
 	}
+	_ = dto.CustomerID.Set(o.CustomerID)
+	_ = dto.PickPointID.Set(o.PickPointID)
+	_ = dto.Weight.Set(o.Weight)
+	_ = dto.Penny.Set(o.Penny)
+
 	_ = dto.ShelfLife.Set(o.ShelfLife.Time())
 	return dto
 }

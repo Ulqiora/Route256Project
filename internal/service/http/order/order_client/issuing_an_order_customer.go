@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	OrderRespository "homework/internal/repository"
+	OrderRespository "github.com/Ulqiora/Route256Project/internal/repository"
 )
 
 func (s *Service) IssuingAnOrderCustomer(w http.ResponseWriter, req *http.Request) {

@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 const sqlGetOrderByCustomerQuery string = `
@@ -25,18 +26,26 @@ const sqlGetOrderByCustomerQuery string = `
 	WHERE "order".id_customer = $1
 `
 
-func (r *Repository) GetByCustomerID(ctx context.Context, id uint64) ([]repository.OrderDTO, error) {
-	queryEngine := r.manager.GetQueryEngine(ctx)
+func (repo *Repository) GetByCustomerID(ctx context.Context, id pgtype.UUID) ([]repository.OrderDTO, error) {
+	queryEngine := repo.manager.DefaultTrOrDB(ctx, repo.db.GetPool(ctx))
 	var result []repository.OrderDTO
-	err := queryEngine.Select(ctx, &result, sqlGetOrderByCustomerQuery, id)
+	rows, err := queryEngine.Query(ctx, sqlGetOrderByCustomerQuery, id)
+	for rows.Next() {
+		var item repository.OrderDTO
+		err = rows.Scan(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, item)
+	}
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%s, %s", repository.ErrorOrderNotFounded, err)
 		}
 		return nil, fmt.Errorf("%s, %s", repository.ErrorDataBase, err)
 	}
-	if r.cache != nil {
-		if err = r.cacheMulti(ctx, result); err != nil {
+	if repo.cache != nil {
+		if err = repo.cacheMulti(ctx, result); err != nil {
 			slog.Warn(err.Error())
 			return result, nil
 		}
@@ -44,10 +53,10 @@ func (r *Repository) GetByCustomerID(ctx context.Context, id uint64) ([]reposito
 	return result, nil
 }
 
-func (r *Repository) cacheMulti(ctx context.Context, orders []repository.OrderDTO) error {
+func (repo *Repository) cacheMulti(ctx context.Context, orders []repository.OrderDTO) error {
 	ordersMap := make(map[string]any, len(orders))
 	for _, orderObj := range orders {
-		ordersMap[hashOrder(orderObj.ID)] = orderObj
+		ordersMap[hashOrder(string(orderObj.ID.Bytes[:]))] = orderObj
 	}
-	return r.cache.SetMulti(ctx, ordersMap)
+	return repo.cache.SetMulti(ctx, ordersMap)
 }

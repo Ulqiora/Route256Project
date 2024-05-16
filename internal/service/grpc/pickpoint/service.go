@@ -4,20 +4,21 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Ulqiora/Route256Project/internal/api"
+	pb "github.com/Ulqiora/Route256Project/internal/api"
+	"github.com/Ulqiora/Route256Project/internal/database/cache"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/service/broker_io"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	"homework/internal/database/cache"
-	pb "homework/internal/gen_proto"
-	"homework/internal/model"
-	"homework/internal/service/broker_io"
 )
 
 type Controller interface {
-	Create(ctx context.Context, object model.PickPoint) (uint64, error)
-	GetByID(ctx context.Context, id uint64) (model.PickPoint, error)
+	Create(ctx context.Context, object model.PickPoint) (string, error)
+	GetByID(ctx context.Context, id string) (model.PickPoint, error)
 	List(ctx context.Context) ([]model.PickPoint, error)
-	Update(ctx context.Context, object model.PickPoint) (uint64, error)
-	Delete(ctx context.Context, id uint64) error
+	Update(ctx context.Context, object model.PickPoint) (string, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type Sender interface {
@@ -25,7 +26,7 @@ type Sender interface {
 }
 
 type Service struct {
-	pb.UnimplementedPickPointServiceServer
+	api.UnimplementedPickPointServiceServer
 	controller Controller
 	sender     Sender
 	cacher     cache.Cache
@@ -43,10 +44,10 @@ func New(controller Controller, sender Sender, cacher cache.Cache, tracer trace.
 }
 
 func RegisterService(server *grpc.Server, controller Controller, sender Sender, cacher cache.Cache, tracer trace.Tracer) {
-	pb.RegisterPickPointServiceServer(server, New(controller, sender, cacher, tracer))
+	api.RegisterPickPointServiceServer(server, New(controller, sender, cacher, tracer))
 }
 
-func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateResponse, error) {
+func (s *Service) Create(ctx context.Context, req *api.CreatePickPointRequest) (*api.CreatePickPointResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"CreatePickpoint")
@@ -55,7 +56,6 @@ func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Create
 		return nil, errors.New("empty request")
 	}
 	pickpoint := model.PickPoint{
-		ID:             int(req.Pickpoint.ID),
 		Name:           req.Pickpoint.Name,
 		Address:        req.Pickpoint.Address,
 		ContactDetails: nil,
@@ -70,9 +70,12 @@ func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Create
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CreateResponse{Pickpoint_ID: int32(id)}, nil
+	var response api.CreatePickPointResponse
+	response.Pickpoint_ID.Value = id
+	return &response, nil
 }
-func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse, error) {
+
+func (s *Service) Get(ctx context.Context, req *api.GetPickPointRequest) (*api.GetPickPointResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"GetPickpoint")
@@ -80,14 +83,16 @@ func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetResponse,
 	if req.String() == "" {
 		return nil, errors.New("empty request")
 	}
-	pickpoint, err := s.controller.GetByID(ctx, uint64(req.Pickpoint_ID))
+	pickpoint, err := s.controller.GetByID(ctx, req.Pickpoint_ID.Value)
 	if err != nil {
 		return nil, err
 	}
 	grpcPickpoint := GetGrpcPickpoint(pickpoint)
-	return &pb.GetResponse{Pickpoint: grpcPickpoint}, nil
+	var response api.GetPickPointResponse
+	response.Pickpoint = grpcPickpoint
+	return &response, nil
 }
-func (s *Service) List(ctx context.Context, req *pb.ListRequest) (*pb.ListResponse, error) {
+func (s *Service) List(ctx context.Context, _ *api.ListPickPointRequest) (*api.ListPickPointResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"ListPickpoint")
@@ -96,13 +101,13 @@ func (s *Service) List(ctx context.Context, req *pb.ListRequest) (*pb.ListRespon
 	if err != nil {
 		return nil, err
 	}
-	response := &pb.ListResponse{}
+	response := &api.ListPickPointResponse{}
 	for _, pp := range pickpoints {
 		response.Pickpoint = append(response.Pickpoint, GetGrpcPickpoint(pp))
 	}
 	return response, nil
 }
-func (s *Service) Update(ctx context.Context, req *pb.UpdateRequest) (*pb.UpdateResponse, error) {
+func (s *Service) Update(ctx context.Context, req *api.UpdatePickPointRequest) (*api.UpdatePickPointResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"UpdatePickpoint")
@@ -111,7 +116,7 @@ func (s *Service) Update(ctx context.Context, req *pb.UpdateRequest) (*pb.Update
 		return nil, errors.New("empty request")
 	}
 	pickpoint := model.PickPoint{
-		ID:             int(req.Pickpoint.ID),
+		ID:             req.Pickpoint.ID.Value,
 		Name:           req.Pickpoint.Name,
 		Address:        req.Pickpoint.Address,
 		ContactDetails: nil,
@@ -123,11 +128,11 @@ func (s *Service) Update(ctx context.Context, req *pb.UpdateRequest) (*pb.Update
 		})
 	}
 	id, err := s.controller.Update(ctx, pickpoint)
-	return &pb.UpdateResponse{
-		Pickpoint_ID: int32(id),
-	}, err
+	var response api.UpdatePickPointResponse
+	response.Pickpoint_ID.Value = id
+	return &response, err
 }
-func (s *Service) Delete(ctx context.Context, req *pb.DeleteRequest) (*pb.DeleteResponse, error) {
+func (s *Service) Delete(ctx context.Context, req *api.DeletePickPointRequest) (*api.DeletePickPointResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"DeletePickpoint")
@@ -135,13 +140,13 @@ func (s *Service) Delete(ctx context.Context, req *pb.DeleteRequest) (*pb.Delete
 	if req.String() == "" {
 		return nil, errors.New("empty request")
 	}
-	err := s.controller.Delete(ctx, uint64(req.Pickpoint_ID))
-	return &pb.DeleteResponse{}, err
+	err := s.controller.Delete(ctx, req.Pickpoint_ID.Value)
+	return &api.DeletePickPointResponse{}, err
 }
 
-func GetGrpcPickpoint(pickpoint model.PickPoint) *pb.PickPoint {
+func GetGrpcPickpoint(pickpoint model.PickPoint) *api.PickPoint {
 	result := &pb.PickPoint{
-		ID:      int32(pickpoint.ID),
+		ID:      &pb.UUID{Value: pickpoint.ID},
 		Name:    pickpoint.Name,
 		Address: pickpoint.Address,
 	}

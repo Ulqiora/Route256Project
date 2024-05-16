@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
-	"homework/internal/infrastructure/kafka"
+	"github.com/Ulqiora/Route256Project/internal/infrastructure/kafka"
 )
 
 type HandleFunc func(message *sarama.ConsumerMessage)

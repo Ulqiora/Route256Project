@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"homework/internal/service/shared"
+	"github.com/Ulqiora/Route256Project/internal/service/shared"
 )
 
 func (s *Service) List(w http.ResponseWriter, req *http.Request) {

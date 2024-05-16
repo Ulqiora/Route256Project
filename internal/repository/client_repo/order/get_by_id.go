@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 const sqlGetOrderQuery string = `
@@ -23,10 +24,10 @@ const sqlGetOrderQuery string = `
 	WHERE "order".id = $1
 `
 
-func (r *Repository) GetByID(ctx context.Context, id uint64) (repository.OrderDTO, error) {
+func (repo *Repository) GetByID(ctx context.Context, id pgtype.UUID) (repository.OrderDTO, error) {
 	var orderDto repository.OrderDTO
-	if r.cache != nil {
-		bytesObj, err := r.cache.Get(ctx, hashOrder(id))
+	if repo.cache != nil {
+		bytesObj, err := repo.cache.Get(ctx, hashOrder(string(id.Bytes[:])))
 		if err != nil {
 			slog.Info(err.Error())
 		} else {
@@ -36,13 +37,13 @@ func (r *Repository) GetByID(ctx context.Context, id uint64) (repository.OrderDT
 			}
 		}
 	}
-	queryEngine := r.manager.GetQueryEngine(ctx)
-	err := queryEngine.Get(ctx, &orderDto, sqlGetOrderQuery, id)
+	queryEngine := repo.manager.DefaultTrOrDB(ctx, repo.db.GetPool(ctx))
+	err := queryEngine.QueryRow(ctx, sqlGetOrderQuery, id).Scan(orderDto)
 	if err != nil {
-		return orderDto, err
+		return repository.OrderDTO{}, err
 	}
-	if r.cache != nil {
-		if err = r.cache.Set(ctx, hashOrder(orderDto.ID), orderDto); err != nil {
+	if repo.cache != nil {
+		if err = repo.cache.Set(ctx, hashOrder(string(orderDto.ID.Bytes[:])), orderDto); err != nil {
 			slog.Warn(err.Error())
 		}
 	}

@@ -1,10 +1,11 @@
 syntax = "proto3";
 
 package services;
-option go_package = "./;pb";
+option go_package = "./;api";
 
 import "google/api/annotations.proto";
 import "order.proto";
+import "uuid.proto";
 
 service OrderCourier {
   rpc AcceptOrder (AcceptOrderRequest) returns (AcceptOrderResponse) {
@@ -15,7 +16,7 @@ service OrderCourier {
   }
   rpc ReturnOrderToCourier(ReturnOrderToCourierRequest) returns (ReturnOrderToCourierResponse){
     option (google.api.http) = {
-      delete: "/order_api/order/{order_id}"
+      delete: "/order_api/order/{order_id.value}"
     };
   }
 }
@@ -25,11 +26,11 @@ message AcceptOrderRequest{
 }
 
 message AcceptOrderResponse{
-  int64 order_id = 1;
+  models.UUID order_id = 1;
 }
 
 message ReturnOrderToCourierRequest{
-  int64 order_id = 1;
+  models.UUID order_id = 1;
 }
 
 message ReturnOrderToCourierResponse{

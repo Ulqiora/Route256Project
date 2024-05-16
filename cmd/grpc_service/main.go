@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"os"
 
+	core "github.com/Ulqiora/Route256Project/internal/core/grpc_service"
+	"github.com/Ulqiora/Route256Project/internal/monitoring/jaeger"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	core "homework/internal/core/grpc_service"
-	"homework/internal/monitoring/jaeger"
 )
 
 func main() {
@@ -29,12 +29,12 @@ func main() {
 			log.Fatal("failed to shutdown TracerProvider: %w", err)
 		}
 	}()
-	manager, err := core.ConfigureTransactionManager(ctx, configApp)
+	manager, bd, err := core.ConfigureTransactionManager(ctx, configApp)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	repositories, err := core.ConfigureRepositories(ctx, manager)
+	repositories, err := core.ConfigureRepositories(ctx, bd)
 	if err != nil {
 		fmt.Println(err)
 		return

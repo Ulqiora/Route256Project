@@ -4,24 +4,24 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Ulqiora/Route256Project/internal/api"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/service/broker_io"
+	jtime "github.com/Ulqiora/Route256Project/pkg/wrapper/jsontime"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	pb "homework/internal/gen_proto"
-	"homework/internal/model"
-	"homework/internal/service/broker_io"
-	jtime "homework/pkg/wrapper/jsontime"
 )
 
 type Controller interface {
-	AcceptOrder(ctx context.Context, data model.OrderInitData) (uint64, error)
-	ReturnOrderToCourier(ctx context.Context, idOrder uint64) error
+	AcceptOrder(ctx context.Context, data model.OrderInitData) (string, error)
+	ReturnOrderToCourier(ctx context.Context, orderID string) error
 }
 type Sender interface {
 	SendMessage(message broker_io.RequestMessage)
 }
 
 type Service struct {
-	pb.OrderCourierServer
+	api.OrderCourierServer
 	controller Controller
 	sender     Sender
 	tracer     trace.Tracer
@@ -36,10 +36,10 @@ func New(controller Controller, sender Sender, tracer trace.Tracer) *Service {
 }
 
 func RegisterService(server *grpc.Server, controller Controller, sender Sender, tracer trace.Tracer) {
-	pb.RegisterOrderCourierServer(server, New(controller, sender, tracer))
+	api.RegisterOrderCourierServer(server, New(controller, sender, tracer))
 }
 
-func (s *Service) AcceptOrder(ctx context.Context, req *pb.AcceptOrderRequest) (*pb.AcceptOrderResponse, error) {
+func (s *Service) AcceptOrder(ctx context.Context, req *api.AcceptOrderRequest) (*api.AcceptOrderResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"AcceptOrder")
@@ -48,16 +48,18 @@ func (s *Service) AcceptOrder(ctx context.Context, req *pb.AcceptOrderRequest) (
 		return nil, errors.New("empty order")
 	}
 	orderID, err := s.controller.AcceptOrder(ctx, model.OrderInitData{
-		CustomerID:  req.Order.Customer_ID,
-		PickPointID: req.Order.Pickpoint_ID,
+		CustomerID:  req.Order.Customer_ID.Value,
+		PickPointID: req.Order.Pickpoint_ID.Value,
 		ShelfLife:   jtime.TimeWrap(req.Order.ShelfTime.AsTime()),
 		Penny:       req.Order.Penny,
 		Weight:      req.Order.Weight,
 		Type:        model.TypePacking(req.Order.TypePacking),
 	})
-	return &pb.AcceptOrderResponse{OrderId: int64(orderID)}, err
+	return &api.AcceptOrderResponse{OrderId: &api.UUID{
+		Value: orderID,
+	}}, err
 }
-func (s *Service) ReturnOrderToCourier(ctx context.Context, req *pb.ReturnOrderToCourierRequest) (*pb.ReturnOrderToCourierResponse, error) {
+func (s *Service) ReturnOrderToCourier(ctx context.Context, req *api.ReturnOrderToCourierRequest) (*api.ReturnOrderToCourierResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"ReturnOrderToCourier")
@@ -65,6 +67,6 @@ func (s *Service) ReturnOrderToCourier(ctx context.Context, req *pb.ReturnOrderT
 	if req.String() == "" {
 		return nil, errors.New("request is empty")
 	}
-	err := s.controller.ReturnOrderToCourier(ctx, uint64(req.OrderId))
-	return &pb.ReturnOrderToCourierResponse{}, err
+	err := s.controller.ReturnOrderToCourier(ctx, req.OrderId.Value)
+	return &api.ReturnOrderToCourierResponse{}, err
 }

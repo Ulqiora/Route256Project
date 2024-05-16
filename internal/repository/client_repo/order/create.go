@@ -4,25 +4,26 @@ import (
 	"context"
 	"fmt"
 
-	"homework/internal/model"
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 const sqlCreateOrderQuery string = `
 	INSERT INTO "order"(id_customer,id_pickpoint,id_state,penny,weight,shelf_life) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id
 `
 
-func (r *Repository) Create(ctx context.Context, dto repository.OrderDTO) (uint64, error) {
-	queryEngine := r.manager.GetQueryEngine(ctx)
+func (repo *Repository) Create(ctx context.Context, dto repository.OrderDTO) (pgtype.UUID, error) {
+	queryEngine := repo.manager.DefaultTrOrDB(ctx, repo.db.GetPool(ctx))
 
-	idState, err := r.getState(ctx, model.EReadyToIssued)
+	idState, err := repo.getState(ctx, model.EReadyToIssued)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %s", repository.ErrorOrderNotCreated, err)
+		return pgtype.UUID{}, fmt.Errorf("%s: %s", repository.ErrorOrderNotCreated, err)
 	}
-	var id uint64
-	err = queryEngine.ExecQueryRow(ctx, sqlCreateOrderQuery, dto.CustomerID, dto.PickPointID, idState, dto.Penny, dto.Weight, dto.ShelfLife).Scan(&id)
+	var id pgtype.UUID
+	err = queryEngine.QueryRow(ctx, sqlCreateOrderQuery, dto.CustomerID, dto.PickPointID, idState, dto.Penny, dto.Weight, dto.ShelfLife).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %s", repository.ErrorOrderNotCreated, err)
+		return pgtype.UUID{}, fmt.Errorf("%s: %s", repository.ErrorOrderNotCreated, err)
 	}
 	return id, nil
 }

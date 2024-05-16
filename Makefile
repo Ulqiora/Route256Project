@@ -8,7 +8,7 @@ endif
 
 
 GRPC_UTILS_FOLDER:=$(CURDIR)/bin
-GRPC_API_GEN=internal/gen_proto
+GRPC_API_GEN=internal/api
 
 GOOSE_PATH=$(GOPATH)/bin
 MIGRATION_FOLDER=$(CURDIR)/migration/postgres
@@ -102,7 +102,7 @@ httpservice:
 #build
 .PHONY: build-project
 build-project:
-	go build -o main cmd/HW8/main.go
+	go build -o main cmd/grpc_service/main.go
 
 httpservice-stop:
 	docker-compose -f deploy/docker-compose.kafka-only.yaml down

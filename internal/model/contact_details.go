@@ -1,7 +1,7 @@
 package model
 
 import (
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
 )
 
 type ContactDetail struct {

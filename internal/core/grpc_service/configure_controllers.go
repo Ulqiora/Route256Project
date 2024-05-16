@@ -1,19 +1,21 @@
 package grpc_service
 
 import (
-	"homework/internal/controller/order"
-	"homework/internal/controller/pickpoint"
-	"homework/internal/database/transaction_manager"
-	"homework/internal/model"
-	"homework/internal/model/order_changers"
+	"github.com/Ulqiora/Route256Project/internal/controller/client"
+	"github.com/Ulqiora/Route256Project/internal/controller/order"
+	"github.com/Ulqiora/Route256Project/internal/controller/pickpoint"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/model/order_changers"
+	trmpgx "github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 )
 
 type Controllers struct {
 	orderCtrl     *order.ControllerOrder
 	pickpointCtrl *pickpoint.Controller
+	clientCtrl    *client.Controller
 }
 
-func ConfigureControllers(repos Repositories, txManager *transaction_manager.TransactionManager) Controllers {
+func ConfigureControllers(repos Repositories, txManager *trmpgx.Manager) Controllers {
 	changerMap := make(map[model.TypePacking]order_changers.ChangerOrder)
 	changerMap[model.TypeBox] = &order_changers.ChangerOrderBox{}
 	changerMap[model.TypeTape] = &order_changers.ChangerOrderTape{}
@@ -21,5 +23,6 @@ func ConfigureControllers(repos Repositories, txManager *transaction_manager.Tra
 	return Controllers{
 		orderCtrl:     order.New(repos.Order, changerMap, txManager),
 		pickpointCtrl: pickpoint.New(repos.Pickpoint, txManager),
+		clientCtrl:    client.New(repos.Client, txManager),
 	}
 }

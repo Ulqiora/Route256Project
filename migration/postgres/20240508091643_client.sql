@@ -3,7 +3,8 @@
 CREATE TABLE client
 (
     id UUID DEFAULT uuid_generate_v4() UNIQUE,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE
 );
 -- +goose StatementEnd
 

@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"homework/pkg/engine/body"
-	"homework/pkg/engine/engine_response"
+	"github.com/Ulqiora/Route256Project/pkg/engine/body"
+	"github.com/Ulqiora/Route256Project/pkg/engine/engine_response"
 )
 
 type ResponseReader struct {

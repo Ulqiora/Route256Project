@@ -1,8 +1,16 @@
 package repository
 
-import "github.com/jackc/pgtype"
+import (
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
+)
 
-type Client struct {
+type ClientDTO struct {
 	ID   pgtype.UUID `bd:"id"`
 	Name string      `bd:"name"`
+}
+
+func (c *ClientDTO) LoadFromRow(row pgx.Row) error {
+	err := row.Scan(c)
+	return err
 }

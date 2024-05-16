@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"io"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 type PickPoint struct {
-	ID             int             `json:"id"`
+	ID             string          `json:"id"`
 	Name           string          `json:"name"`
 	Address        string          `json:"address"`
 	ContactDetails []ContactDetail `json:"contact_details"`
@@ -27,7 +28,7 @@ func (p *PickPoint) Load(data io.Reader) error {
 
 func (p *PickPoint) MapToDTO() repository.PickPointDTO {
 	return repository.PickPointDTO{
-		ID:             p.ID,
+		ID:             pgtype.UUID{Status: pgtype.Present, Bytes: [16]byte([]byte(p.ID))},
 		Name:           p.Name,
 		Address:        p.Address,
 		ContactDetails: nil,
@@ -36,7 +37,7 @@ func (p *PickPoint) MapToDTO() repository.PickPointDTO {
 
 func (p *PickPoint) LoadFromDTO(dto repository.PickPointDTO) PickPoint {
 	*p = PickPoint{
-		ID:             dto.ID,
+		ID:             string(dto.ID.Bytes[:]),
 		Name:           dto.Name,
 		Address:        dto.Address,
 		ContactDetails: nil,

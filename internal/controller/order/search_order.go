@@ -6,13 +6,19 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/Ulqiora/Route256Project/internal/controller"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/jackc/pgtype"
 	"github.com/pkg/errors"
-	"homework/internal/controller"
-	"homework/internal/model"
 )
 
-func (c *ControllerOrder) SearchOrders(ctx context.Context, customerID uint64, values controller.ValuesView) ([]model.Order, error) {
-	orderDTOs, err := c.storage.GetByCustomerID(ctx, customerID)
+func (c *ControllerOrder) SearchOrders(ctx context.Context, customerID string, values controller.ValuesView) ([]model.Order, error) {
+	uuidCustomer := pgtype.UUID{}
+	err := uuidCustomer.Set(customerID)
+	if err != nil {
+		return nil, fmt.Errorf("incorrect format uuid: %s", err)
+	}
+	orderDTOs, err := c.storage.GetByCustomerID(ctx, uuidCustomer)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error searching orders")
 	}
@@ -24,10 +30,7 @@ func (c *ControllerOrder) SearchOrders(ctx context.Context, customerID uint64, v
 		}
 		orders = filterByLastN(orders, n)
 	} else if values.Has("pickpoint_id") && values.Get("pickpoint_id") != "0" {
-		id, err := strconv.ParseUint(values.Get("pickpoint_id"), 10, 64)
-		if err != nil {
-			return nil, err
-		}
+		id := values.Get("pickpoint_id")
 		orders = filterByPickPointID(orders, id)
 	} else {
 		return nil, errors.New("you need to set one of the additional parameters")
@@ -42,21 +45,17 @@ func filterByLastN(inputOrders []model.Order, N uint64) []model.Order {
 		return outputOrders[i].TimeCreated.Time().After(*outputOrders[j].TimeCreated.Time())
 	})
 	if N >= uint64(len(outputOrders)) {
-		fmt.Println(outputOrders)
 		return outputOrders
 	}
-	fmt.Printf("last_n = %d", N)
-	fmt.Println(outputOrders)
 	return outputOrders[:N]
 }
 
-func filterByPickPointID(inputOrders []model.Order, pickpointID uint64) []model.Order {
+func filterByPickPointID(inputOrders []model.Order, pickpointID string) []model.Order {
 	var outputOrders []model.Order
 	for i := range inputOrders {
-		if inputOrders[i].PickPointID == int64(pickpointID) {
+		if inputOrders[i].PickPointID == pickpointID {
 			outputOrders = append(outputOrders, inputOrders[i])
 		}
 	}
-	fmt.Printf("last_n = %d", pickpointID)
 	return outputOrders
 }

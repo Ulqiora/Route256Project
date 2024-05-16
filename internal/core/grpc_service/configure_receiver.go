@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
+	"github.com/Ulqiora/Route256Project/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/infrastructure/kafka"
+	"github.com/Ulqiora/Route256Project/internal/service/broker_io"
 	"github.com/pkg/errors"
-	"homework/internal/config"
-	"homework/internal/infrastructure/kafka"
-	"homework/internal/service/broker_io"
 )
 
 func PrintMessage(message *sarama.ConsumerMessage) {

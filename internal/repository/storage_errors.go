@@ -12,3 +12,4 @@ var ErrorOrderIsNotReceived = errors.New("this order was not received")
 var ErrorOrderCantReturnedToCourier = errors.New("this order was not returned to order_courier")
 
 var ErrorObjectNotFounded = errors.New("not found")
+var ErrorObjectNotCreated = errors.New("not created")

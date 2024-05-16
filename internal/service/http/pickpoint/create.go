@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"homework/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/model"
 )
 
 func (s *Service) Create(w http.ResponseWriter, req *http.Request) {

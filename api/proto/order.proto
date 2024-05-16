@@ -1,15 +1,17 @@
 syntax = "proto3";
 
 package models;
-option go_package = "./;pb";
+option go_package = "./;api";
 
 import "google/protobuf/timestamp.proto";
+import "uuid.proto";
+
 
 
 message Order{
-  uint64 ID = 1;
-  int64 customer_ID =2;
-  int64 pickpoint_ID = 3;
+  UUID ID = 1;
+  UUID customer_ID =2;
+  UUID pickpoint_ID = 3;
   google.protobuf.Timestamp shelf_time = 4;
   google.protobuf.Timestamp time_created = 5;
   google.protobuf.Timestamp date_receipt = 6;
@@ -19,8 +21,8 @@ message Order{
 }
 
 message OrderInitData{
-  int64 customer_ID =1;
-  int64 pickpoint_ID = 2;
+  UUID customer_ID =1;
+  UUID pickpoint_ID = 2;
   google.protobuf.Timestamp shelf_time = 3;
   int64 penny = 4; // в копейках
   int64 weight = 5; // в килограммах с точностью до сотых

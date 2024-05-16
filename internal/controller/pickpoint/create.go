@@ -3,13 +3,13 @@ package pickpoint
 import (
 	"context"
 
-	"homework/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/model"
 )
 
-func (c *Controller) Create(ctx context.Context, object model.PickPoint) (uint64, error) {
+func (c *Controller) Create(ctx context.Context, object model.PickPoint) (string, error) {
 	id, err := c.storage.Create(ctx, object.MapToDTO())
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	return id, nil
+	return string(id.Bytes[:]), nil
 }

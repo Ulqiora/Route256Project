@@ -1,6 +1,6 @@
 package engine_response
 
-import "homework/pkg/engine/body"
+import "github.com/Ulqiora/Route256Project/pkg/engine/body"
 
 type ResponseEngine interface {
 	GetBody() body.Body

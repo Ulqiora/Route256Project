@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
-	"homework/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/config"
 )
 
 type Consumer struct {

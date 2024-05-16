@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"homework/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/config"
 )
 
 func AuthMiddleware(auth config.Auth) func(http.Handler) http.Handler {

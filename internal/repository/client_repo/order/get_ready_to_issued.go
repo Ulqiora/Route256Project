@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
 )
 
 const sqlGetReadyToIssuedQuery = `
@@ -25,10 +25,20 @@ const sqlGetReadyToIssuedQuery = `
 				FROM state_order
 				WHERE type = 'ReadyToIssued') `
 
-func (r *Repository) ListReadyToIssued(ctx context.Context) ([]repository.OrderDTO, error) {
-	queryEngine := r.manager.GetQueryEngine(ctx)
+func (repo *Repository) ListReadyToIssued(ctx context.Context) ([]repository.OrderDTO, error) {
+	queryEngine := repo.manager.DefaultTrOrDB(ctx, repo.db.GetPool(ctx))
 	var dtos []repository.OrderDTO
-	err := queryEngine.Select(ctx, &dtos, sqlGetReadyToIssuedQuery)
+	rows, err := queryEngine.Query(ctx, sqlGetReadyToIssuedQuery)
+	rows.Close()
+	for rows.Next() {
+		var dto repository.OrderDTO
+		err := dto.LoadFromRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, dto)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("%s, %s", repository.ErrorDataBase, err)
 	}

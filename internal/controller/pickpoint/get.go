@@ -3,12 +3,18 @@ package pickpoint
 import (
 	"context"
 
-	"homework/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/jackc/pgtype"
 )
 
-func (c *Controller) GetByID(ctx context.Context, id uint64) (model.PickPoint, error) {
+func (c *Controller) GetByID(ctx context.Context, id string) (model.PickPoint, error) {
 	var obj model.PickPoint
-	dto, err := c.storage.GetByID(ctx, int(id))
+	var pickpointUuid pgtype.UUID
+	err := pickpointUuid.Scan(id)
+	if err != nil {
+		return model.PickPoint{}, err
+	}
+	dto, err := c.storage.GetByID(ctx, pickpointUuid)
 	if err != nil {
 		return model.PickPoint{}, err
 	}

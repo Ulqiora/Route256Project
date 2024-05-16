@@ -3,7 +3,7 @@ package order
 import (
 	"strconv"
 
-	"homework/internal/controller"
+	"github.com/Ulqiora/Route256Project/internal/controller"
 )
 
 type paginationFilter struct {

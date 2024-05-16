@@ -3,22 +3,25 @@ package cli
 import (
 	"fmt"
 
-	"homework/internal/database/cache"
-	"homework/internal/database/transaction_manager"
+	"github.com/Ulqiora/Route256Project/internal/database/cache"
+	"github.com/Ulqiora/Route256Project/internal/database/postgresql"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv4/v2"
 )
 
 type PickPointRepository struct {
-	db    *transaction_manager.TransactionManager
-	cache cache.Cache
+	db      postgresql.PGXDatabase
+	manager *trmpgx.CtxGetter
+	cache   cache.Cache
 }
 
-func New(db *transaction_manager.TransactionManager, cache cache.Cache) *PickPointRepository {
+func New(db postgresql.PGXDatabase, cache cache.Cache) *PickPointRepository {
 	return &PickPointRepository{
-		db:    db,
-		cache: cache,
+		db:      db,
+		manager: trmpgx.DefaultCtxGetter,
+		cache:   cache,
 	}
 }
 
-func hashFunction(id int) string {
-	return fmt.Sprintf("pickpoint_%d", id)
+func hashFunction(id string) string {
+	return fmt.Sprintf("pickpoint_%s", id)
 }

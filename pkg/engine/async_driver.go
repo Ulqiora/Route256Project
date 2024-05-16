@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"homework/pkg/engine/engine_request"
-	"homework/pkg/engine/engine_response"
-	"homework/pkg/logger"
+	"github.com/Ulqiora/Route256Project/pkg/engine/engine_request"
+	"github.com/Ulqiora/Route256Project/pkg/engine/engine_response"
+	"github.com/Ulqiora/Route256Project/pkg/logger"
 )
 
 type FunctionHandler func(w engine_response.ResponseEngine, r engine_request.RequestEngine)

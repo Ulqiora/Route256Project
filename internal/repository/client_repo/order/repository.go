@@ -3,24 +3,27 @@ package cli
 import (
 	"fmt"
 
-	"homework/internal/database/cache"
-	"homework/internal/database/transaction_manager"
+	"github.com/Ulqiora/Route256Project/internal/database/cache"
+	"github.com/Ulqiora/Route256Project/internal/database/postgresql"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv4/v2"
 )
 
 type Repository struct {
-	manager *transaction_manager.TransactionManager
+	db      postgresql.PGXDatabase
+	manager *trmpgx.CtxGetter
 	cache   cache.Cache
 }
 
-func New(manager *transaction_manager.TransactionManager, cache cache.Cache) *Repository {
+func New(cache cache.Cache, db postgresql.PGXDatabase) *Repository {
 	return &Repository{
-		manager: manager,
+		manager: trmpgx.DefaultCtxGetter,
 		cache:   cache,
+		db:      db,
 	}
 }
 
-func hashOrder(id uint64) string {
-	return fmt.Sprintf("order_%d", id)
+func hashOrder(id string) string {
+	return fmt.Sprintf("order_%s", id)
 }
 
 func hashStateOrder(state string) string {

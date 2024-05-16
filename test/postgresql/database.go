@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"homework/internal/config"
-	"homework/internal/database/postgresql"
+	"github.com/Ulqiora/Route256Project/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/database/postgresql"
 )
 
 type TestDatabase struct {

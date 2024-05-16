@@ -3,16 +3,17 @@ package grpc_service
 import (
 	"context"
 
-	"homework/internal/config"
-	"homework/internal/database/postgresql"
-	"homework/internal/database/transaction_manager"
+	"github.com/Ulqiora/Route256Project/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/database/postgresql"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv4/v2"
+	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 )
 
-func ConfigureTransactionManager(ctx context.Context, config *config.Config) (*transaction_manager.TransactionManager, error) {
+func ConfigureTransactionManager(ctx context.Context, config *config.Config) (*manager.Manager, *postgresql.Database, error) {
 	database, err := postgresql.NewDb(ctx, config.PostgresDsn)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	manager := transaction_manager.New(database)
-	return manager, nil
+	trManager := manager.Must(trmpgx.NewDefaultFactory(database.GetPool(ctx)))
+	return trManager, database, nil
 }

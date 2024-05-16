@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/IBM/sarama"
-	"homework/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/config"
 )
 
 type BrokersIP []string

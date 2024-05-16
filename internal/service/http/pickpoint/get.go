@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/service/shared"
 	"github.com/gorilla/mux"
-	"homework/internal/repository"
-	"homework/internal/service/shared"
 )
 
 func (s *Service) Get(w http.ResponseWriter, req *http.Request) {

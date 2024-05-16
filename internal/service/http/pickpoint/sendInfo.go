@@ -4,8 +4,8 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Ulqiora/Route256Project/internal/service/broker_io"
 	"github.com/gorilla/mux"
-	"homework/internal/service/broker_io"
 )
 
 func (s *Service) sendInfo(methodName string, r *http.Request, body io.Reader) {

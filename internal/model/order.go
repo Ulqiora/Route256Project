@@ -1,15 +1,15 @@
 package model
 
 import (
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	jtime "github.com/Ulqiora/Route256Project/pkg/wrapper/jsontime"
 	"github.com/jackc/pgtype"
-	"homework/internal/repository"
-	jtime "homework/pkg/wrapper/jsontime"
 )
 
 type Order struct {
-	ID          uint64         `json:"id"`          // ID Заказа
-	CustomerID  int64          `json:"customer_id"` // ID Заказчика
-	PickPointID int64          `json:"pick_point_id"`
+	ID          string         `json:"id"`          // ID Заказа
+	CustomerID  string         `json:"customer_id"` // ID Заказчика
+	PickPointID string         `json:"pick_point_id"`
 	ShelfLife   jtime.TimeWrap `json:"shelf_life"`   // Срок хранения заказа на ПВЗ
 	TimeCreated jtime.TimeWrap `json:"time_created"` // Дата получения заказа ПВЗ
 	DateReceipt jtime.TimeWrap `json:"date_receipt"` // Дата получения заказа Клиентом
@@ -22,15 +22,18 @@ type Order struct {
 
 func (o *Order) MapToDTO() repository.OrderDTO {
 	orderdto := repository.OrderDTO{
-		ID:          o.ID,
-		CustomerID:  o.CustomerID,
-		PickPointID: o.PickPointID,
-
-		Penny:  o.Penny,
-		Weight: o.Weight,
-
-		State: o.State,
+		ID:          pgtype.UUID{},
+		CustomerID:  pgtype.UUID{},
+		PickPointID: pgtype.UUID{},
+		Penny:       pgtype.Numeric{},
+		Weight:      pgtype.Numeric{},
+		State:       o.State,
 	}
+	_ = orderdto.ID.Set(o.ID)
+	_ = orderdto.CustomerID.Set(o.CustomerID)
+	_ = orderdto.PickPointID.Set(o.PickPointID)
+	_ = orderdto.Penny.Set(o.Penny)
+	_ = orderdto.Weight.Set(o.Weight)
 	if o.ShelfLife.IsZero() {
 		orderdto.ShelfLife.Status = pgtype.Null
 	}
@@ -45,12 +48,12 @@ func (o *Order) MapToDTO() repository.OrderDTO {
 
 func (o *Order) LoadFromDTO(dto repository.OrderDTO) Order {
 	*o = Order{
-		ID:          dto.ID,
-		CustomerID:  dto.CustomerID,
-		PickPointID: dto.PickPointID,
+		ID:          string(dto.ID.Bytes[:]),
+		CustomerID:  string(dto.CustomerID.Bytes[:]),
+		PickPointID: string(dto.PickPointID.Bytes[:]),
 
-		Penny:  dto.Penny,
-		Weight: dto.Weight,
+		Penny:  dto.Penny.Int.Int64(),
+		Weight: dto.Weight.Int.Int64(),
 
 		State: dto.State,
 	}

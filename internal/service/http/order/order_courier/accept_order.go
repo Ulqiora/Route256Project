@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"homework/internal/model"
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/repository"
 )
 
 func (s *Service) AcceptOrder(w http.ResponseWriter, req *http.Request) {

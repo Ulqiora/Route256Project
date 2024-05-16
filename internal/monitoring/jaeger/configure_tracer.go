@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Ulqiora/Route256Project/internal/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
-	"homework/internal/config"
 )
 
 func ConfigureTracer(ctx context.Context, config config.MonitoringConfig) (func(context.Context) error, error) {

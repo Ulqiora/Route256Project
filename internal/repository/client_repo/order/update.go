@@ -3,7 +3,8 @@ package cli
 import (
 	"context"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 const sqlOrderSetToReceivedQuery string = `
@@ -13,8 +14,8 @@ const sqlOrderSetToReturnedQuery string = `
 	UPDATE "order" SET id_state=(SELECT id FROM state_order WHERE type = 'Returned') WHERE id=$1
 `
 
-func (r *Repository) UpdateToReceived(ctx context.Context, orderID uint64) error {
-	queryEngine := r.manager.GetQueryEngine(ctx)
+func (repo *Repository) UpdateToReceived(ctx context.Context, orderID pgtype.UUID) error {
+	queryEngine := repo.manager.DefaultTrOrDB(ctx, repo.db.GetPool(ctx))
 	_, err := queryEngine.Exec(ctx, sqlOrderSetToReceivedQuery, orderID)
 	if err != nil {
 		return repository.ErrorDataBase
@@ -22,8 +23,8 @@ func (r *Repository) UpdateToReceived(ctx context.Context, orderID uint64) error
 	return nil
 }
 
-func (r *Repository) UpdateToReturned(ctx context.Context, orderID uint64) error {
-	queryEngine := r.manager.GetQueryEngine(ctx)
+func (repo *Repository) UpdateToReturned(ctx context.Context, orderID pgtype.UUID) error {
+	queryEngine := repo.manager.DefaultTrOrDB(ctx, repo.db.GetPool(ctx))
 	_, err := queryEngine.Exec(ctx, sqlOrderSetToReturnedQuery, orderID)
 	if err != nil {
 		return repository.ErrorDataBase

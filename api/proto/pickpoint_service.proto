@@ -1,75 +1,75 @@
 syntax = "proto3";
 
 package services;
-option go_package = "./;pb";
+option go_package = "./;api";
 
 import "google/api/annotations.proto";
 import "pickpoint.proto";
-
+import "uuid.proto";
 service PickPointService {
-  rpc Create(CreateRequest) returns (CreateResponse) {
+  rpc Create(CreatePickPointRequest) returns (CreatePickPointResponse) {
     option (google.api.http) = {
       post: "/pickpoint_api/pickpoint"
       body: "*"
     };
   }
-  rpc Get(GetRequest) returns (GetResponse){
+  rpc Get(GetPickPointRequest) returns (GetPickPointResponse){
     option (google.api.http) = {
-      get: "/pickpoint_api/pickpoint/{pickpoint_ID}"
+      get: "/pickpoint_api/pickpoint/{pickpoint_ID.value}"
     };
   }
-  rpc List(ListRequest) returns (ListResponse){
+  rpc List(ListPickPointRequest) returns (ListPickPointResponse){
     option (google.api.http) = {
       get: "/pickpoint_api/pickpoint"
     };
   }
-  rpc Update(UpdateRequest) returns (UpdateResponse){
+  rpc Update(UpdatePickPointRequest) returns (UpdatePickPointResponse){
     option (google.api.http) = {
-      patch: "/pickpoint_api/pickpoint/{pickpoint.ID}"
+      patch: "/pickpoint_api/pickpoint/{pickpoint.ID.value}"
       body: "*"
     };
   }
-  rpc Delete(DeleteRequest) returns (DeleteResponse){
+  rpc Delete(DeletePickPointRequest) returns (DeletePickPointResponse){
     option (google.api.http) = {
-      delete: "/pickpoint_api/pickpoint/{pickpoint_ID}"
+      delete: "/pickpoint_api/pickpoint/{pickpoint_ID.value}"
     };
   }
 }
 
-message CreateRequest{
+message CreatePickPointRequest{
   models.PickPoint pickpoint = 1;
 }
 
-message CreateResponse{
-  int32 pickpoint_ID = 1;
+message CreatePickPointResponse{
+  models.UUID pickpoint_ID = 1;
 }
 
-message GetRequest{
-  int32 pickpoint_ID = 1;
+message GetPickPointRequest{
+  models.UUID pickpoint_ID = 1;
 }
 
-message GetResponse{
+message GetPickPointResponse{
   models.PickPoint pickpoint = 1;
 }
 
-message ListRequest{
+message ListPickPointRequest{
 }
 
-message ListResponse{
+message ListPickPointResponse{
   repeated models.PickPoint pickpoint = 1;
 }
 
-message UpdateRequest{
+message UpdatePickPointRequest{
   models.PickPoint pickpoint = 1;
 }
 
-message UpdateResponse{
-  int32 pickpoint_ID = 1;
+message UpdatePickPointResponse{
+  models.UUID pickpoint_ID = 1;
 }
 
-message DeleteRequest{
-  int32 pickpoint_ID = 1;
+message DeletePickPointRequest{
+  models.UUID pickpoint_ID = 1;
 }
 
-message DeleteResponse{
+message DeletePickPointResponse{
 }

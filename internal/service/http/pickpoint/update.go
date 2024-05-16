@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Ulqiora/Route256Project/internal/model"
 	"github.com/gorilla/mux"
-	"homework/internal/model"
 )
 
 func (s *Service) Update(w http.ResponseWriter, req *http.Request) {

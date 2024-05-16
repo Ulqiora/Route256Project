@@ -3,10 +3,10 @@ package order_changers
 import (
 	"testing"
 
+	"github.com/Ulqiora/Route256Project/internal/model"
+	jtime "github.com/Ulqiora/Route256Project/pkg/wrapper/jsontime"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"homework/internal/model"
-	jtime "homework/pkg/wrapper/jsontime"
 )
 
 func TestChangerOrderBox_Change(t *testing.T) {

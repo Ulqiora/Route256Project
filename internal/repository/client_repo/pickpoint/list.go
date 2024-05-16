@@ -3,7 +3,7 @@ package cli
 import (
 	"context"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
 )
 
 const sqlListPickPointQuery string = `
@@ -14,17 +14,37 @@ const sqlListPickPointQuery string = `
 `
 
 func (r *PickPointRepository) List(ctx context.Context) ([]repository.PickPointDTO, error) {
-	queryEngine := r.db.GetQueryEngine(ctx)
+	queryEngine := r.manager.DefaultTrOrDB(ctx, r.db.GetPool(ctx))
 	var result []repository.PickPointDTO
-	err := queryEngine.Select(ctx, &result, sqlListPickPointQuery)
+	rows, err := queryEngine.Query(ctx, sqlListPickPointQuery)
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
-	for i := range result {
-		err = queryEngine.Select(ctx, &result[i].ContactDetails, sqlGetContactDetailsQuery, result[i].ID)
+	for rows.Next() {
+		var pp repository.PickPointDTO
+		err = rows.Scan(&pp.ID, &pp.Name, &pp.Address)
 		if err != nil {
 			return nil, err
 		}
+		result = append(result, pp)
 	}
+	for i := range result {
+		rowsContacts, err := queryEngine.Query(ctx, sqlGetContactDetailsQuery, result[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		rowsContacts.Close()
+		for rowsContacts.Next() {
+			var contact repository.ContactDetailDTO
+			err = rowsContacts.Scan(contact)
+			if err != nil {
+				return nil, err
+			}
+			result[i].ContactDetails = append(result[i].ContactDetails, contact)
+		}
+		rowsContacts.Close()
+	}
+
 	return result, nil
 }

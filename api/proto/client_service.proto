@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package services;
+option go_package = "./;api";
+
+import "google/api/annotations.proto";
+import "client.proto";
+import "uuid.proto";
+service ClientService {
+  rpc Create(CreateClientRequest) returns (CreateClientResponse) {
+    option (google.api.http) = {
+      post: "/pickpoint_api/client"
+      body: "*"
+    };
+  }
+  rpc Get(GetClientRequest) returns (GetClientResponse){
+    option (google.api.http) = {
+      get: "/pickpoint_api/client/{client_ID.value}"
+    };
+  }
+  rpc List(ListClientRequest) returns (ListClientResponse){
+    option (google.api.http) = {
+      get: "/pickpoint_api/client"
+    };
+  }
+  rpc Update(UpdateClientRequest) returns (UpdateClientResponse){
+    option (google.api.http) = {
+      patch: "/pickpoint_api/client/{client.ID.value}"
+      body: "*"
+    };
+  }
+  rpc Delete(DeleteClientRequest) returns (DeleteClientResponse){
+    option (google.api.http) = {
+      delete: "/pickpoint_api/client/{client_ID.value}"
+    };
+  }
+}
+
+message CreateClientRequest{
+  models.Client client = 1;
+}
+
+message CreateClientResponse{
+  models.UUID client_ID = 1;
+}
+
+message GetClientRequest{
+  models.UUID client_ID = 1;
+}
+
+message GetClientResponse{
+  models.Client client = 1;
+}
+
+message ListClientRequest{
+}
+
+message ListClientResponse{
+  repeated models.Client client = 1;
+}
+
+message UpdateClientRequest{
+  models.Client client = 1;
+}
+
+message UpdateClientResponse{
+  models.UUID client_ID = 1;
+}
+
+message DeleteClientRequest{
+  models.UUID client_ID = 1;
+}
+
+message DeleteClientResponse{
+}

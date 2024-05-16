@@ -2,9 +2,17 @@ package grpc_service
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
+	"github.com/Ulqiora/Route256Project/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/database/cache/redis"
+	"github.com/Ulqiora/Route256Project/internal/infrastructure/kafka"
+	"github.com/Ulqiora/Route256Project/internal/service/broker_io"
+	"github.com/Ulqiora/Route256Project/internal/service/grpc/client"
+	"github.com/Ulqiora/Route256Project/internal/service/grpc/order/order_client"
+	"github.com/Ulqiora/Route256Project/internal/service/grpc/order/order_courier"
+	"github.com/Ulqiora/Route256Project/internal/service/grpc/order/order_delivery"
+	"github.com/Ulqiora/Route256Project/internal/service/grpc/pickpoint"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -12,14 +20,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	"homework/internal/config"
-	"homework/internal/database/cache/redis"
-	"homework/internal/infrastructure/kafka"
-	"homework/internal/service/broker_io"
-	"homework/internal/service/grpc/order/order_client"
-	"homework/internal/service/grpc/order/order_courier"
-	"homework/internal/service/grpc/order/order_delivery"
-	"homework/internal/service/grpc/pickpoint"
 )
 
 type Services struct {
@@ -27,16 +27,15 @@ type Services struct {
 	orderClientSrv   *order_client.Service
 	orderCourierSrv  *order_courier.Service
 	orderDeliverySrv *order_delivery.Service
+	clientSrv        *client.Service
 }
 
 func ConfigureServices(controller Controllers, config *config.Config, metrics *grpc_prometheus.ServerMetrics) (*prometheus.Registry, *grpc.Server, error) {
 	kafkaProducer, err := kafka.NewProducer(config.Kafka, slog.Default(), slog.Default())
 	if err != nil {
-		fmt.Println(err)
 		return nil, nil, err
 	}
 	kafkaProducer.Run()
-
 	redisClient := redis.New(config.Redis)
 	if err = redisClient.Ping(context.Background()); err != nil {
 		return nil, nil, err
@@ -59,5 +58,6 @@ func ConfigureServices(controller Controllers, config *config.Config, metrics *g
 	order_delivery.RegisterService(grpcServer, controller.orderCtrl, broker_io.NewKafkaSender(kafkaProducer, "order"), redisClient, otel.Tracer("order-delivery-service"))
 	order_courier.RegisterService(grpcServer, controller.orderCtrl, broker_io.NewKafkaSender(kafkaProducer, "order"), otel.Tracer("order-courier-service"))
 	pickpoint.RegisterService(grpcServer, controller.pickpointCtrl, broker_io.NewKafkaSender(kafkaProducer, "pickpoint"), redisClient, otel.Tracer("pickpoint-service"))
+	client.RegisterService(grpcServer, controller.clientCtrl, broker_io.NewKafkaSender(kafkaProducer, "client"), redisClient, otel.Tracer("client-service"))
 	return registry, grpcServer, nil
 }

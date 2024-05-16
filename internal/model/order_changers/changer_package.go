@@ -1,7 +1,7 @@
 package order_changers
 
 import (
-	"homework/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/model"
 )
 
 type ChangerOrderPackage struct {

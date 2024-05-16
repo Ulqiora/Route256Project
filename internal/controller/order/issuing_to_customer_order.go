@@ -4,20 +4,26 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v4"
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
-func (c *ControllerOrder) IssuingToCustomer(ctx context.Context, orderIDs []uint64) error {
-
-	err := c.tm.Run(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadWrite}, func(ctxTX context.Context) error {
+// IssuingToCustomer TODO: change transaction params!
+func (c *ControllerOrder) IssuingToCustomer(ctx context.Context, orderIDs []string) error {
+	//pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadWrite}
+	err := c.tm.Do(ctx, func(ctxTX context.Context) error {
 		orders, err := c.storage.ListReadyToIssued(ctxTX)
 		if err != nil {
 			return fmt.Errorf("error get list ready for issued: %s", err)
 		}
 		if isCorrectIDsForIssuing(orders, orderIDs) {
 			for _, orderID := range orderIDs {
-				err = c.storage.UpdateToReceived(ctxTX, orderID)
+				uuidOrder := pgtype.UUID{}
+				err = uuidOrder.Set(orderID)
+				if err != nil {
+					return fmt.Errorf("incorrect format uuid: %s", err)
+				}
+				err = c.storage.UpdateToReceived(ctxTX, uuidOrder)
 				if err != nil {
 					return fmt.Errorf("error update to received orders: %s", err)
 				}
@@ -31,10 +37,10 @@ func (c *ControllerOrder) IssuingToCustomer(ctx context.Context, orderIDs []uint
 	return nil
 }
 
-func isCorrectIDsForIssuing(readyToIssuedOrders []repository.OrderDTO, idOrders []uint64) bool {
-	var ordersMap = make(map[uint64]repository.OrderDTO)
+func isCorrectIDsForIssuing(readyToIssuedOrders []repository.OrderDTO, idOrders []string) bool {
+	var ordersMap = make(map[string]repository.OrderDTO)
 	for _, orderObj := range readyToIssuedOrders {
-		ordersMap[orderObj.ID] = orderObj
+		ordersMap[string(orderObj.ID.Bytes[:])] = orderObj
 	}
 
 	ordersFiltered := make([]repository.OrderDTO, 0, 8)

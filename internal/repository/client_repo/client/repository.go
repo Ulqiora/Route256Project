@@ -1,33 +1,27 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/Ulqiora/Route256Project/internal/database/cache"
+	"github.com/Ulqiora/Route256Project/internal/database/postgresql"
 	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv4/v2"
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"homework/internal/database/cache"
-	"homework/internal/repository"
 )
 
 type ClientRepository struct {
-	db     *pgxpool.Pool
-	cache  cache.Cache
-	getter *trmpgx.CtxGetter
+	db      postgresql.PGXDatabase
+	cache   cache.Cache
+	manager *trmpgx.CtxGetter
 }
 
-func New(db *pgxpool.Pool, cache cache.Cache) *ClientRepository {
+func New(db postgresql.PGXDatabase, cache cache.Cache) *ClientRepository {
 	return &ClientRepository{
-		db:    db,
-		cache: cache,
+		db:      db,
+		cache:   cache,
+		manager: trmpgx.DefaultCtxGetter,
 	}
 }
-func (repo *ClientRepository) Create(ctx context.Context, client repository.Client) pgtype.UUID {
-	repo.getter.DefaultTrOrDB(context.Background(), repo.db)
-	return nil
-}
 
-func hashFunction(id int) string {
+func hashFunction(id string) string {
 	return fmt.Sprintf("pickpoint_%d", id)
 }

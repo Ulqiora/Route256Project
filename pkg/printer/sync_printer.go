@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"homework/pkg/engine"
-	"homework/pkg/engine/engine_response"
+	"github.com/Ulqiora/Route256Project/pkg/engine"
+	"github.com/Ulqiora/Route256Project/pkg/engine/engine_response"
 )
 
 type SyncPrinter struct {

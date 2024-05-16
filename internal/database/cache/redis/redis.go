@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Ulqiora/Route256Project/internal/config"
 	"github.com/redis/go-redis/v9"
-	"homework/internal/config"
 )
 
 var defaultTimeout = 10 * time.Minute

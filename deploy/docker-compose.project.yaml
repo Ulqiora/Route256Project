@@ -3,7 +3,7 @@ services:
   development-application:
     build:
       context: ../
-      dockerfile: ../build/grpc_service/Dockerfile
+      dockerfile: build/grpc_service/Dockerfile
     ports:
       - "9000:9000" #http
       - "9001:9001" #https

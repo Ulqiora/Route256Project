@@ -1,8 +1,9 @@
 syntax = "proto3";
 
 package models;
-option go_package = "./;pb";
+option go_package = "./;api";
 
+import "uuid.proto";
 
 message ContactDetails{
   string type = 1;
@@ -10,7 +11,7 @@ message ContactDetails{
 }
 
 message PickPoint{
-  int32 ID = 1;
+  models.UUID ID = 1;
   string name = 2;
   string address = 3;
   repeated ContactDetails contact_details = 4;

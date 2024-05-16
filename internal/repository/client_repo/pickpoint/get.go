@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 const sqlGetContactDetailsQuery = `
@@ -25,10 +26,10 @@ const sqlGetPickPointQuery = `
     WHERE id = $1 AND deleted=false
 `
 
-func (r *PickPointRepository) GetByID(ctx context.Context, id int) (repository.PickPointDTO, error) {
+func (r *PickPointRepository) GetByID(ctx context.Context, id pgtype.UUID) (repository.PickPointDTO, error) {
 	var result repository.PickPointDTO
 	if r.cache != nil {
-		bytesData, err := r.cache.Get(ctx, hashFunction(id))
+		bytesData, err := r.cache.Get(ctx, hashFunction(string(id.Bytes[:])))
 		if err == nil {
 			err = json.Unmarshal(bytesData, &result)
 			if err != nil {
@@ -37,19 +38,28 @@ func (r *PickPointRepository) GetByID(ctx context.Context, id int) (repository.P
 			return result, err
 		}
 	}
-	queryEngine := r.db.GetQueryEngine(ctx)
-	err := queryEngine.Get(ctx, &result, sqlGetPickPointQuery, id)
+	queryEngine := r.manager.DefaultTrOrDB(ctx, r.db.GetPool(ctx))
+	err := queryEngine.QueryRow(ctx, sqlGetPickPointQuery, id).Scan(&result)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return repository.PickPointDTO{}, ErrorObjectNotFounded
 		}
 		return repository.PickPointDTO{}, err
 	}
-	err = queryEngine.Select(ctx, &result.ContactDetails, sqlGetContactDetailsQuery, id)
+	rows, err := queryEngine.Query(ctx, sqlGetContactDetailsQuery, id)
+	defer rows.Close()
+	for rows.Next() {
+		var contact repository.ContactDetailDTO
+		err = rows.Scan(&contact.Type, &contact.Detail)
+		if err != nil {
+			return repository.PickPointDTO{}, err
+		}
+		result.ContactDetails = append(result.ContactDetails, contact)
+	}
 	if err != nil {
 		return repository.PickPointDTO{}, err
 	}
-	if err = r.cache.Set(ctx, hashFunction(id), result); err != nil {
+	if err = r.cache.Set(ctx, hashFunction(string(id.Bytes[:])), result); err != nil {
 		return result, err
 	}
 	return result, nil

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"homework/internal/controller"
-	"homework/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/controller"
+	"github.com/Ulqiora/Route256Project/internal/model"
 )
 
 func (c *ControllerOrder) GetReturnedOrders(ctx context.Context, values controller.ValuesView) ([]model.Order, error) {

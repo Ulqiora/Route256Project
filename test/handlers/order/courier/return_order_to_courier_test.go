@@ -8,17 +8,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Ulqiora/Route256Project/internal/core/http_service"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/model/order_changers"
+	order_storage "github.com/Ulqiora/Route256Project/internal/repository/order/cli"
+	pick_point_storage "github.com/Ulqiora/Route256Project/internal/repository/pick_point"
+	pickpoint_storage "github.com/Ulqiora/Route256Project/internal/repository/pick_point/cli"
+	"github.com/Ulqiora/Route256Project/internal/service/order/http/courier"
+	jtime "github.com/Ulqiora/Route256Project/pkg/wrapper/jsontime"
+	"github.com/Ulqiora/Route256Project/test/postgresql"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
-	"homework/internal/core/http_service"
-	"homework/internal/model"
-	"homework/internal/model/order_changers"
-	order_storage "homework/internal/repository/order/cli"
-	pick_point_storage "homework/internal/repository/pick_point"
-	pickpoint_storage "homework/internal/repository/pick_point/cli"
-	"homework/internal/service/order/http/courier"
-	jtime "homework/pkg/wrapper/jsontime"
-	"homework/test/postgresql"
 )
 
 func TestReturnOrderToCourierIntegrate(t *testing.T) {

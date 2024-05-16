@@ -3,7 +3,7 @@ package grpc_service
 import (
 	"os"
 
-	"homework/internal/config"
+	"github.com/Ulqiora/Route256Project/internal/config"
 )
 
 func LoadConfig(configFilePath string) *config.Config {

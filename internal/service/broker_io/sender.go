@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
+	"github.com/Ulqiora/Route256Project/internal/infrastructure/kafka"
 	"github.com/gofrs/uuid"
-	"homework/internal/infrastructure/kafka"
 )
 
 type SenderKafka struct {

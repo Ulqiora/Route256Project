@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Ulqiora/Route256Project/internal/service/shared"
 	"github.com/gorilla/mux"
-	"homework/internal/service/shared"
 )
 
 func (s *Service) SearchOrders(w http.ResponseWriter, req *http.Request) {

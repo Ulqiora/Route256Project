@@ -2,9 +2,9 @@ package cli
 
 import (
 	"context"
-	"fmt"
 
-	"homework/internal/repository"
+	"github.com/Ulqiora/Route256Project/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 const sqlCreateContactDetailsQuery = `
@@ -19,25 +19,23 @@ const sqlCreatePickPointQuery = `
     INSERT INTO pickpoint(name,address) VALUES ($1,$2) RETURNING id 
 `
 
-func (r *PickPointRepository) Create(ctx context.Context, dto repository.PickPointDTO) (uint64, error) {
-	queryEngine := r.db.GetQueryEngine(ctx)
-	var id uint64
-	err := queryEngine.ExecQueryRow(ctx, sqlCreatePickPointQuery, dto.Name, dto.Address).Scan(&id)
+func (r *PickPointRepository) Create(ctx context.Context, dto repository.PickPointDTO) (pgtype.UUID, error) {
+	queryEngine := r.manager.DefaultTrOrDB(ctx, r.db.GetPool(ctx))
+	var id pgtype.UUID
+	err := queryEngine.QueryRow(ctx, sqlCreatePickPointQuery, dto.Name, dto.Address).Scan(&id)
 	if err != nil {
-		return 0, err
+		return pgtype.UUID{}, err
 	}
 	ids := make([]int, len(dto.ContactDetails))
 	for i, contact := range dto.ContactDetails {
-		var idType int
-		err := queryEngine.ExecQueryRow(ctx, sqlCreateContactTypeQuery, contact.Type).Scan(&idType)
+		var idType string
+		err := queryEngine.QueryRow(ctx, sqlCreateContactTypeQuery, contact.Type).Scan(&idType)
 		if err != nil {
-			fmt.Println(err.Error())
-			return 0, err
+			return pgtype.UUID{}, err
 		}
-		err = queryEngine.ExecQueryRow(ctx, sqlCreateContactDetailsQuery, idType, contact.Detail, id).Scan(&ids[i])
+		err = queryEngine.QueryRow(ctx, sqlCreateContactDetailsQuery, idType, contact.Detail, id).Scan(&ids[i])
 		if err != nil {
-			fmt.Println(err.Error())
-			return 0, err
+			return pgtype.UUID{}, err
 		}
 	}
 	return id, err

@@ -3,9 +3,9 @@ package pickpoint
 import (
 	"context"
 
-	"homework/internal/database/cache"
-	"homework/internal/model"
-	"homework/internal/service/broker_io"
+	"github.com/Ulqiora/Route256Project/internal/database/cache"
+	"github.com/Ulqiora/Route256Project/internal/model"
+	"github.com/Ulqiora/Route256Project/internal/service/broker_io"
 )
 
 type Sender interface {

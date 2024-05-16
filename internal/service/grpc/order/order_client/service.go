@@ -3,19 +3,19 @@ package order_client
 import (
 	"context"
 
+	"github.com/Ulqiora/Route256Project/internal/api"
+	"github.com/Ulqiora/Route256Project/internal/monitoring/prometheus_cli/metrics"
+	"github.com/Ulqiora/Route256Project/internal/service/broker_io"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	pb "homework/internal/gen_proto"
-	"homework/internal/monitoring/prometheus_cli/metrics"
-	"homework/internal/service/broker_io"
 )
 
 type Controller interface {
-	IssuingToCustomer(ctx context.Context, idOrders []uint64) error
-	ReturnOrder(ctx context.Context, orderId uint64, customerId uint64) error
+	IssuingToCustomer(ctx context.Context, idOrders []string) error
+	ReturnOrder(ctx context.Context, orderId string, customerId string) error
 }
 
 type Sender interface {
@@ -23,7 +23,7 @@ type Sender interface {
 }
 
 type Service struct {
-	pb.OrderClientServer
+	api.OrderClientServer
 	controller          Controller
 	sender              Sender
 	tracer              trace.Tracer
@@ -41,11 +41,11 @@ func New(controller Controller, sender Sender, tracer trace.Tracer) *Service {
 
 func RegisterService(server *grpc.Server, controller Controller, sender Sender, tracer trace.Tracer, registry *prometheus.Registry) {
 	service := New(controller, sender, tracer)
-	pb.RegisterOrderClientServer(server, New(controller, sender, tracer))
+	api.RegisterOrderClientServer(server, New(controller, sender, tracer))
 	registry.MustRegister(service.counterIssuedOrders)
 }
 
-func (s *Service) IssuingAnOrderCustomer(ctx context.Context, req *pb.IssuingAnOrderCustomerRequest) (*pb.IssuingAnOrderCustomerResponse, error) {
+func (s *Service) IssuingAnOrderCustomer(ctx context.Context, req *api.IssuingAnOrderCustomerRequest) (*api.IssuingAnOrderCustomerResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"IssuingAnOrderCustomer")
@@ -54,14 +54,14 @@ func (s *Service) IssuingAnOrderCustomer(ctx context.Context, req *pb.IssuingAnO
 	if req.String() == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request. Set ids of orders for issuing")
 	}
-	err := s.controller.IssuingToCustomer(ctx, req.OrderIds)
+	err := s.controller.IssuingToCustomer(ctx, ConvertUUIDsToStrings(req.OrderIds))
 	if err == nil {
 		s.counterIssuedOrders.Add(float64(len(req.OrderIds)))
 	}
-	return &pb.IssuingAnOrderCustomerResponse{}, err
+	return &api.IssuingAnOrderCustomerResponse{}, err
 }
 
-func (s *Service) ReturnOrder(ctx context.Context, req *pb.ReturnOrderRequest) (*pb.ReturnOrderResponse, error) {
+func (s *Service) ReturnOrder(ctx context.Context, req *api.ReturnOrderRequest) (*api.ReturnOrderResponse, error) {
 	ctx, span := s.tracer.Start(
 		ctx,
 		"ReturnOrder")
@@ -69,6 +69,14 @@ func (s *Service) ReturnOrder(ctx context.Context, req *pb.ReturnOrderRequest) (
 	if req.String() == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request. Set id of orders for returning")
 	}
-	err := s.controller.ReturnOrder(ctx, req.OrderId, req.CustomerId)
-	return &pb.ReturnOrderResponse{}, err
+	err := s.controller.ReturnOrder(ctx, req.OrderId.Value, req.CustomerId.Value)
+	return &api.ReturnOrderResponse{}, err
+}
+
+func ConvertUUIDsToStrings(ids []*api.UUID) []string {
+	var result []string
+	for i := range ids {
+		result = append(result, ids[i].Value)
+	}
+	return result
 }
