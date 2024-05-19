@@ -2,11 +2,13 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 
+	"github.com/Ulqiora/Route256Project/internal/api"
 	"github.com/Ulqiora/Route256Project/internal/repository"
 	jtime "github.com/Ulqiora/Route256Project/pkg/wrapper/jsontime"
-	"github.com/jackc/pgtype"
 )
 
 type TypePacking string
@@ -28,20 +30,40 @@ type OrderInitData struct {
 	Type TypePacking `json:"type"`
 }
 
-func (o *OrderInitData) MapToDTO() repository.OrderDTO {
-	dto := repository.OrderDTO{
-		CustomerID:  pgtype.UUID{},
-		PickPointID: pgtype.UUID{},
-		Penny:       pgtype.Numeric{},
-		Weight:      pgtype.Numeric{},
+func (o *OrderInitData) MapToDTO() (repository.OrderDTO, error) {
+	orderdto := repository.OrderDTO{}
+	err := orderdto.CustomerID.Set(o.CustomerID)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set customer id for order: %v", err)
 	}
-	_ = dto.CustomerID.Set(o.CustomerID)
-	_ = dto.PickPointID.Set(o.PickPointID)
-	_ = dto.Weight.Set(o.Weight)
-	_ = dto.Penny.Set(o.Penny)
+	err = orderdto.PickPointID.Set(o.PickPointID)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set pickpoint id for order: %v", err)
+	}
+	err = orderdto.Penny.Set(o.Penny)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set penny for order: %v", err)
+	}
+	err = orderdto.Weight.Set(o.Weight)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set id for order: %v", err)
+	}
+	return orderdto, nil
+}
 
-	_ = dto.ShelfLife.Set(o.ShelfLife.Time())
-	return dto
+func (o *OrderInitData) LoadFromGrpcModel(dto *api.OrderInitData) error {
+	if dto == nil {
+		return errors.New("client info is nil")
+	}
+	*o = OrderInitData{
+		CustomerID:  dto.Customer_ID.Value,
+		PickPointID: dto.Pickpoint_ID.Value,
+		ShelfLife:   jtime.TimeWrap(dto.ShelfTime.AsTime()),
+		Penny:       dto.Penny,
+		Weight:      dto.Weight,
+		Type:        TypePacking(dto.TypePacking),
+	}
+	return nil
 }
 
 func (o *OrderInitData) LoadFromRequest(r io.Reader) error {

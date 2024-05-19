@@ -11,6 +11,6 @@ func (c *Controller) List(ctx context.Context) ([]model.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	clients := model.LoadClientsFromDTO(dtos)
-	return clients, nil
+	clients, err := model.LoadClientsFromDTO(dtos)
+	return clients, err
 }

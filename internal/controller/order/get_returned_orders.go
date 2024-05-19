@@ -19,8 +19,9 @@ func (c *ControllerOrder) GetReturnedOrders(ctx context.Context, values controll
 	if err != nil {
 		return nil, err
 	}
+	orders, err := model.LoadOrdersFromDTO(listDTO)
 	list, err := filterByPageLimit(
-		filterByStateOrder(model.LoadOrdersFromDTO(listDTO), model.EReturned),
+		filterByStateOrder(orders, model.EReturned),
 		filter,
 	)
 	if err != nil {

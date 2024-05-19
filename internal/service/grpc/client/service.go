@@ -46,6 +46,11 @@ func RegisterService(server *grpc.Server, controller Controller, sender Sender, 
 }
 
 func (s *Service) Create(ctx context.Context, req *api.CreateClientRequest) (*api.CreateClientResponse, error) {
+	var object model.Client
+	err := object.LoadFromGrpcModel(req.Client)
+	if err != nil {
+		return nil, err
+	}
 	id, err := s.controller.Create(ctx, model.Client{
 		Name: req.Client.Name,
 	})
@@ -89,7 +94,9 @@ func (s *Service) Update(ctx context.Context, req *api.UpdateClientRequest) (*ap
 		return nil, err
 	}
 	var resp api.UpdateClientResponse
-	resp.Client_ID.Value = id
+	resp.Client_ID = &api.UUID{
+		Value: id,
+	}
 	return &resp, nil
 }
 func (s *Service) Delete(ctx context.Context, res *api.DeleteClientRequest) (*api.DeleteClientResponse, error) {

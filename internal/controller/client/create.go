@@ -7,7 +7,17 @@ import (
 )
 
 func (c *Controller) Create(ctx context.Context, obj model.Client) (string, error) {
-	uuidObj, err := c.storage.Create(ctx, obj.MapToDTO())
+	dto, err := obj.MapToDTO()
+	if err != nil {
+		return "", err
+	}
+	uuidObj, err := c.storage.Create(ctx, dto)
+	if err != nil {
+		return "", err
+	}
 	value, err := uuidObj.Value()
+	if err != nil {
+		return "", err
+	}
 	return value.(string), err
 }

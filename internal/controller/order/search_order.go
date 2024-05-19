@@ -22,7 +22,10 @@ func (c *ControllerOrder) SearchOrders(ctx context.Context, customerID string, v
 	if err != nil {
 		return nil, errors.Wrap(err, "Error searching orders")
 	}
-	orders := model.LoadOrdersFromDTO(orderDTOs)
+	orders, err := model.LoadOrdersFromDTO(orderDTOs)
+	if err != nil {
+		return nil, fmt.Errorf("error loading orders: %s", err.Error())
+	}
 	if values.Has("last_n") && values.Get("last_n") != "0" {
 		n, err := strconv.ParseUint(values.Get("last_n"), 10, 64)
 		if err != nil {

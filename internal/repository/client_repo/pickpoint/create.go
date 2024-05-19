@@ -26,9 +26,9 @@ func (r *PickPointRepository) Create(ctx context.Context, dto repository.PickPoi
 	if err != nil {
 		return pgtype.UUID{}, err
 	}
-	ids := make([]int, len(dto.ContactDetails))
+	ids := make([]pgtype.UUID, len(dto.ContactDetails))
 	for i, contact := range dto.ContactDetails {
-		var idType string
+		var idType pgtype.UUID
 		err := queryEngine.QueryRow(ctx, sqlCreateContactTypeQuery, contact.Type).Scan(&idType)
 		if err != nil {
 			return pgtype.UUID{}, err

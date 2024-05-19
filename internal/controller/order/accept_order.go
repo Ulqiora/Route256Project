@@ -18,9 +18,13 @@ func (c *ControllerOrder) AcceptOrder(ctx context.Context, data model.OrderInitD
 	}
 	var orderID string
 	err = c.tm.Do(ctx, func(ctx context.Context) error {
-		orderUUID, err := c.storage.Create(ctx, data.MapToDTO())
+		dto, err := data.MapToDTO()
 		if err != nil {
-			return fmt.Errorf("error create order: %s", err)
+			return fmt.Errorf("error load dto: %s", err.Error())
+		}
+		orderUUID, err := c.storage.Create(ctx, dto)
+		if err != nil {
+			return fmt.Errorf("error create order: %s", err.Error())
 		}
 		orderID = string(orderUUID.Bytes[:])
 		return nil

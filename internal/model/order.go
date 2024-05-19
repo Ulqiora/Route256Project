@@ -1,9 +1,14 @@
 package model
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/Ulqiora/Route256Project/internal/api"
 	"github.com/Ulqiora/Route256Project/internal/repository"
 	jtime "github.com/Ulqiora/Route256Project/pkg/wrapper/jsontime"
 	"github.com/jackc/pgtype"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Order struct {
@@ -20,20 +25,30 @@ type Order struct {
 	State string `json:"state"` // Состояние заказа
 }
 
-func (o *Order) MapToDTO() repository.OrderDTO {
+func (o *Order) MapToDTO() (repository.OrderDTO, error) {
 	orderdto := repository.OrderDTO{
-		ID:          pgtype.UUID{},
-		CustomerID:  pgtype.UUID{},
-		PickPointID: pgtype.UUID{},
-		Penny:       pgtype.Numeric{},
-		Weight:      pgtype.Numeric{},
-		State:       o.State,
+		State: o.State,
 	}
-	_ = orderdto.ID.Set(o.ID)
-	_ = orderdto.CustomerID.Set(o.CustomerID)
-	_ = orderdto.PickPointID.Set(o.PickPointID)
-	_ = orderdto.Penny.Set(o.Penny)
-	_ = orderdto.Weight.Set(o.Weight)
+	err := orderdto.ID.Set(o.ID)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set id for order: %v", err)
+	}
+	err = orderdto.CustomerID.Set(o.CustomerID)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set customer id for order: %v", err)
+	}
+	err = orderdto.PickPointID.Set(o.PickPointID)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set pickpoint id for order: %v", err)
+	}
+	err = orderdto.Penny.Set(o.Penny)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set penny for order: %v", err)
+	}
+	err = orderdto.Weight.Set(o.Weight)
+	if err != nil {
+		return repository.OrderDTO{}, fmt.Errorf("error set id for order: %v", err)
+	}
 	if o.ShelfLife.IsZero() {
 		orderdto.ShelfLife.Status = pgtype.Null
 	}
@@ -43,20 +58,34 @@ func (o *Order) MapToDTO() repository.OrderDTO {
 	if o.DateReceipt.IsZero() {
 		orderdto.DateReceipt.Status = pgtype.Null
 	}
-	return orderdto
+	return orderdto, nil
 }
 
-func (o *Order) LoadFromDTO(dto repository.OrderDTO) Order {
+func (o *Order) LoadFromDTO(dto *repository.OrderDTO) error {
+	if dto == nil {
+		return errors.New("dto is nil")
+	}
 	*o = Order{
-		ID:          string(dto.ID.Bytes[:]),
-		CustomerID:  string(dto.CustomerID.Bytes[:]),
-		PickPointID: string(dto.PickPointID.Bytes[:]),
-
 		Penny:  dto.Penny.Int.Int64(),
 		Weight: dto.Weight.Int.Int64(),
-
-		State: dto.State,
+		State:  dto.State,
 	}
+	value, err := dto.ID.Value()
+	if err != nil {
+		return fmt.Errorf("error get id for order: %v", err)
+	}
+	o.ID = value.(string)
+	value, err = dto.CustomerID.Value()
+	if err != nil {
+		return fmt.Errorf("error get id for order: %v", err)
+	}
+	o.ID = value.(string)
+	value, err = dto.PickPointID.Value()
+	if err != nil {
+		return fmt.Errorf("error get id for order: %v", err)
+	}
+	o.ID = value.(string)
+
 	if dto.ShelfLife.Status == pgtype.Present {
 		o.ShelfLife = jtime.TimeWrap(dto.ShelfLife.Time)
 	}
@@ -66,15 +95,49 @@ func (o *Order) LoadFromDTO(dto repository.OrderDTO) Order {
 	if dto.DateReceipt.Status == pgtype.Present {
 		o.DateReceipt = jtime.TimeWrap(dto.DateReceipt.Time)
 	}
-	return *o
+	return nil
 }
 
-func LoadOrdersFromDTO(orders []repository.OrderDTO) []Order {
+func LoadOrdersFromDTO(orders []repository.OrderDTO) ([]Order, error) {
 	result := make([]Order, len(orders))
 	for i := range orders {
-		result[i].LoadFromDTO(orders[i])
+		err := result[i].LoadFromDTO(&orders[i])
+		return nil, err
 	}
-	return result
+	return result, nil
+}
+
+func (o *Order) MapToGrpcModel() *api.Order {
+	client := &api.Order{
+		ID:           &api.UUID{Value: o.ID},
+		Customer_ID:  &api.UUID{Value: o.CustomerID},
+		Pickpoint_ID: &api.UUID{Value: o.PickPointID},
+		ShelfTime:    timestamppb.New(*o.ShelfLife.Time()),
+		TimeCreated:  timestamppb.New(*o.TimeCreated.Time()),
+		DateReceipt:  timestamppb.New(*o.DateReceipt.Time()),
+		Penny:        o.Penny,
+		Weight:       o.Weight,
+		State:        o.State,
+	}
+	return client
+}
+
+func (o *Order) LoadFromGrpcModel(dto *api.Order) error {
+	if dto == nil {
+		return errors.New("client info is nil")
+	}
+	*o = Order{
+		ID:          dto.ID.Value,
+		CustomerID:  dto.Customer_ID.Value,
+		PickPointID: dto.Pickpoint_ID.Value,
+		ShelfLife:   jtime.TimeWrap(dto.ShelfTime.AsTime()),
+		TimeCreated: jtime.TimeWrap(dto.TimeCreated.AsTime()),
+		DateReceipt: jtime.TimeWrap(dto.DateReceipt.AsTime()),
+		Penny:       dto.Penny,
+		Weight:      dto.Weight,
+		State:       dto.State,
+	}
+	return nil
 }
 
 // Состояния заказа

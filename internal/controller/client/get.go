@@ -19,6 +19,9 @@ func (c *Controller) Get(ctx context.Context, ObjId string) (model.Client, error
 	if err != nil {
 		return result, fmt.Errorf("controller: failed to get by ID: %w", err)
 	}
-	result.LoadFromDTO(&clientDTO)
+	err = result.LoadFromDTO(&clientDTO)
+	if err != nil {
+		return model.Client{}, err
+	}
 	return result, nil
 }

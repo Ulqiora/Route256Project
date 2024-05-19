@@ -20,6 +20,6 @@ type OrderDTO struct {
 }
 
 func (o *OrderDTO) LoadFromRow(row pgx.Row) error {
-	err := row.Scan(o)
+	err := row.Scan(&o.ID, &o.CustomerID, &o.PickPointID, &o.ShelfLife, &o.TimeCreated, &o.DateReceipt, &o.Penny, &o.Weight, &o.State)
 	return err
 }

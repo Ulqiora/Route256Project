@@ -7,7 +7,11 @@ import (
 )
 
 func (c *Controller) Create(ctx context.Context, object model.PickPoint) (string, error) {
-	id, err := c.storage.Create(ctx, object.MapToDTO())
+	dto, err := object.MapToDTO()
+	if err != nil {
+		return "", err
+	}
+	id, err := c.storage.Create(ctx, dto)
 	if err != nil {
 		return "", err
 	}

@@ -71,7 +71,9 @@ func (s *Service) Create(ctx context.Context, req *api.CreatePickPointRequest) (
 		return nil, err
 	}
 	var response api.CreatePickPointResponse
-	response.Pickpoint_ID.Value = id
+	response.Pickpoint_ID = &api.UUID{
+		Value: id,
+	}
 	return &response, nil
 }
 

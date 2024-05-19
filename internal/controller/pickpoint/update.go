@@ -7,7 +7,11 @@ import (
 )
 
 func (c *Controller) Update(ctx context.Context, object model.PickPoint) (string, error) {
-	id, err := c.storage.Update(ctx, object.MapToDTO())
+	dto, err := object.MapToDTO()
+	if err != nil {
+		return "", err
+	}
+	id, err := c.storage.Update(ctx, dto)
 	if err != nil {
 		return "", err
 	}

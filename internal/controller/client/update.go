@@ -7,9 +7,14 @@ import (
 )
 
 func (c *Controller) Update(ctx context.Context, obj model.Client) (string, error) {
-	uuid, err := c.storage.Update(ctx, obj.MapToDTO())
+	dto, err := obj.MapToDTO()
+	uuid, err := c.storage.Update(ctx, dto)
 	if err != nil {
 		return "", err
 	}
-	return string(uuid.Bytes[:]), nil
+	value, err := uuid.Value()
+	if err != nil {
+		return "", err
+	}
+	return value.(string), nil
 }

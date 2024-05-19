@@ -11,6 +11,6 @@ type ClientDTO struct {
 }
 
 func (c *ClientDTO) LoadFromRow(row pgx.Row) error {
-	err := row.Scan(c)
+	err := row.Scan(&c.ID, &c.Name)
 	return err
 }

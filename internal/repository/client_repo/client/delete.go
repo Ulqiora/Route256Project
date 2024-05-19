@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Ulqiora/Route256Project/internal/repository"
 	"github.com/jackc/pgtype"
@@ -13,9 +14,9 @@ const sqlDeleteClientQuery string = `
 
 func (repo *ClientRepository) Delete(ctx context.Context, id pgtype.UUID) error {
 	connection := repo.manager.DefaultTrOrDB(ctx, repo.db.GetPool(ctx))
-	err := connection.QueryRow(ctx, sqlDeleteClientQuery, id)
+	_, err := connection.Exec(ctx, sqlDeleteClientQuery, id)
 	if err != nil {
-		return repository.ErrorObjectNotCreated
+		return fmt.Errorf("%s: %s", repository.ErrorObjectNotCreated, err)
 	}
 	return nil
 }
