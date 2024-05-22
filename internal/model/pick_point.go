@@ -55,6 +55,11 @@ func (p *PickPoint) LoadFromDTO(dto repository.PickPointDTO) PickPoint {
 		Address:        dto.Address,
 		ContactDetails: make([]ContactDetail, 0, len(dto.ContactDetails)),
 	}
+	value, err := dto.ID.Value()
+	if err != nil {
+		return PickPoint{}
+	}
+	p.ID = value.(string)
 	p.ContactDetails = make([]ContactDetail, len(dto.ContactDetails))
 	for i := range dto.ContactDetails {
 		p.ContactDetails[i].LoadFromDTO(dto.ContactDetails[i])

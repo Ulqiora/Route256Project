@@ -15,5 +15,9 @@ func (c *Controller) Update(ctx context.Context, object model.PickPoint) (string
 	if err != nil {
 		return "", err
 	}
-	return string(id.Bytes[:]), nil
+	value, err := id.Value()
+	if err != nil {
+		return "", err
+	}
+	return value.(string), nil
 }

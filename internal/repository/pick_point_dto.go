@@ -13,6 +13,6 @@ type PickPointDTO struct {
 }
 
 func (p *PickPointDTO) LoadFromRow(row pgx.Row) error {
-	err := row.Scan(p.ID, &p.Name, &p.Address)
+	err := row.Scan(&p.ID, &p.Name, &p.Address)
 	return err
 }

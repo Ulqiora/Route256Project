@@ -51,11 +51,6 @@ func main() {
 		err = http.ListenAndServe(configApp.Monitoring.Prometheus.Address, promhttp.HandlerFor(registry, promhttp.HandlerOpts{EnableOpenMetrics: true}))
 		fmt.Println(err)
 	}()
-	//_, err = core.ConfigureReceivers(configApp, "order", "pickpoint")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
 
 	list, err := net.Listen("tcp", configApp.Grpc.Address)
 	if err != nil {

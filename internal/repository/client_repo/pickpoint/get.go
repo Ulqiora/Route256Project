@@ -39,7 +39,8 @@ func (r *PickPointRepository) GetByID(ctx context.Context, id pgtype.UUID) (repo
 		}
 	}
 	queryEngine := r.manager.DefaultTrOrDB(ctx, r.db.GetPool(ctx))
-	err := queryEngine.QueryRow(ctx, sqlGetPickPointQuery, id).Scan(&result)
+	row := queryEngine.QueryRow(ctx, sqlGetPickPointQuery, id)
+	err := result.LoadFromRow(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return repository.PickPointDTO{}, ErrorObjectNotFounded
